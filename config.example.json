@@ -1,0 +1,13 @@
+{
+  "_comment": "Example configuration template - Copy this to config.json and customize with your repositories and workflows",
+  "repositories": [
+    "your-username/repo1",
+    "your-username/repo2",
+    "your-username/repo3"
+  ],
+  "workflows": [
+    "ci.yml",
+    "tests.yml",
+    "build.yml"
+  ]
+}

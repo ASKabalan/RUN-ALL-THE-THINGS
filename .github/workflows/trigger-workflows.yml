@@ -1,0 +1,126 @@
+name: Trigger Workflows
+
+on:
+  workflow_dispatch:
+    inputs:
+      repositories:
+        description: 'Comma-separated list of repositories (owner/repo format). Leave empty to use all from config.'
+        required: false
+        type: string
+      workflows:
+        description: 'Comma-separated list of workflow file names (e.g., ci.yml,tests.yml). Leave empty to use all from config.'
+        required: false
+        type: string
+      branch:
+        description: 'Target branch to run workflows against'
+        required: false
+        default: 'main'
+        type: string
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read configuration
+        id: config
+        run: |
+          if [ -f "config.json" ]; then
+            echo "Config file found"
+            cat config.json
+          else
+            echo "No config file found, using inputs only"
+          fi
+
+      - name: Parse inputs and config
+        id: parse
+        run: |
+          # Read config file if exists
+          if [ -f "config.json" ]; then
+            CONFIG_REPOS=$(jq -r '.repositories[]' config.json 2>/dev/null || echo "")
+            CONFIG_WORKFLOWS=$(jq -r '.workflows[]' config.json 2>/dev/null || echo "")
+          else
+            CONFIG_REPOS=""
+            CONFIG_WORKFLOWS=""
+          fi
+
+          # Use inputs if provided, otherwise use config
+          if [ -n "${{ github.event.inputs.repositories }}" ]; then
+            REPOS="${{ github.event.inputs.repositories }}"
+          else
+            REPOS=$(echo "$CONFIG_REPOS" | tr '\n' ',' | sed 's/,$//')
+          fi
+
+          if [ -n "${{ github.event.inputs.workflows }}" ]; then
+            WORKFLOWS="${{ github.event.inputs.workflows }}"
+          else
+            WORKFLOWS=$(echo "$CONFIG_WORKFLOWS" | tr '\n' ',' | sed 's/,$//')
+          fi
+
+          echo "repos=$REPOS" >> $GITHUB_OUTPUT
+          echo "workflows=$WORKFLOWS" >> $GITHUB_OUTPUT
+          
+          echo "Repositories to trigger: $REPOS"
+          echo "Workflows to trigger: $WORKFLOWS"
+
+      - name: Trigger workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOS: ${{ steps.parse.outputs.repos }}
+          WORKFLOWS: ${{ steps.parse.outputs.workflows }}
+          BRANCH: ${{ github.event.inputs.branch }}
+        run: |
+          # Convert comma-separated strings to arrays
+          IFS=',' read -ra REPO_ARRAY <<< "$REPOS"
+          IFS=',' read -ra WORKFLOW_ARRAY <<< "$WORKFLOWS"
+
+          echo "=== Starting workflow triggers ==="
+          echo "Target branch: $BRANCH"
+          echo ""
+
+          # Iterate through each repository
+          for repo in "${REPO_ARRAY[@]}"; do
+            repo=$(echo "$repo" | xargs) # trim whitespace
+            if [ -z "$repo" ]; then
+              continue
+            fi
+            
+            echo "📦 Repository: $repo"
+            
+            # Iterate through each workflow
+            for workflow in "${WORKFLOW_ARRAY[@]}"; do
+              workflow=$(echo "$workflow" | xargs) # trim whitespace
+              if [ -z "$workflow" ]; then
+                continue
+              fi
+              
+              echo "  ▶ Triggering workflow: $workflow"
+              
+              # Trigger the workflow using GitHub CLI
+              if gh workflow run "$workflow" \
+                --repo "$repo" \
+                --ref "$BRANCH"; then
+                echo "  ✅ Successfully triggered $workflow in $repo"
+              else
+                echo "  ❌ Failed to trigger $workflow in $repo"
+              fi
+              
+              # Small delay to avoid rate limiting
+              sleep 2
+            done
+            echo ""
+          done
+          
+          echo "=== Workflow triggers complete ==="
+
+      - name: Summary
+        run: |
+          echo "### Workflow Trigger Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Repositories:** ${{ steps.parse.outputs.repos }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflows:** ${{ steps.parse.outputs.workflows }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.event.inputs.branch }}" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,10 @@
+{
+  "repositories": [
+    "ASKabalan/example-repo1",
+    "ASKabalan/example-repo2"
+  ],
+  "workflows": [
+    "ci.yml",
+    "tests.yml"
+  ]
+}
