@@ -2,11 +2,11 @@
 
 A centralized workflow dispatcher that allows you to trigger workflows across multiple repositories with ease.
 
-## 🎯 Purpose
+## Purpose
 
 This repository serves as a central hub to trigger GitHub Actions workflows in your other repositories. Instead of manually navigating to each repository to trigger workflows, you can trigger them all from one place.
 
-## ✨ Features
+## Features
 
 - **Manual Trigger**: Easy workflow dispatch through GitHub Actions UI
 - **Repository Selection**: Choose specific repositories or use pre-configured list
@@ -14,7 +14,7 @@ This repository serves as a central hub to trigger GitHub Actions workflows in y
 - **Branch Targeting**: Run workflows against any branch (defaults to `main`)
 - **Configurable**: Use `config.json` for default settings or override via UI inputs
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Configure Your Repositories
 
@@ -58,7 +58,7 @@ Go to the **Actions** tab in this repository:
    - **Workflows**: Comma-separated list (e.g., `ci.yml,tests.yml`)
    - **Branch**: Target branch (defaults to `main`)
 
-## 📋 Configuration
+## Configuration
 
 ### config.json
 
@@ -75,7 +75,7 @@ You can override config.json settings when manually triggering:
 - **workflows**: Comma-separated workflow list (overrides config)
 - **branch**: Target branch for workflow execution (default: `main`)
 
-## 🔐 Permissions
+## Permissions
 
 The workflow requires:
 
@@ -86,7 +86,7 @@ If using `GITHUB_TOKEN` instead of a PAT:
 - Only works for repositories in the same organization
 - May have limited permissions depending on organization settings
 
-## 📝 Example Usage
+## Example Usage
 
 ### Using config.json defaults
 
@@ -106,14 +106,14 @@ Input in the UI:
 
 This will trigger all configured workflows on the `develop` branch.
 
-## 🛠️ How It Works
+## How It Works
 
 1. The workflow reads `config.json` for default repositories and workflows
 2. User inputs (if provided) override the config defaults
 3. The workflow uses GitHub CLI (`gh`) to trigger each workflow in each repository
 4. Results are displayed in the workflow logs and summary
 
-## 📚 Prerequisites
+## Prerequisites
 
 Your target repositories must:
 
@@ -121,11 +121,11 @@ Your target repositories must:
 - Have the workflows you want to trigger (e.g., `ci.yml`, `tests.yml`)
 - Have these workflows configured with `workflow_dispatch` trigger (required for manual triggering)
 
-## 🤝 Contributing
+## Contributing
 
 Feel free to customize `config.json` and the workflow to fit your needs!
 
-## ⚠️ Troubleshooting
+## Troubleshooting
 
 **Workflow not triggering?**
 - Ensure the `GH_TOKEN` secret is properly configured in repository settings
