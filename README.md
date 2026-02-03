@@ -35,13 +35,17 @@ Edit `config.json` to specify your default repositories and workflows:
 
 ### 2. Set Up GitHub Token
 
-**Important**: For this to work, you need a GitHub Personal Access Token (PAT) with `workflow` permissions:
+**Important**: For this to work across different repositories, you need a GitHub Personal Access Token (PAT) with `workflow` permissions:
 
 1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
-2. Generate a new token with `workflow` scope
-3. Add it as a repository secret named `GH_TOKEN` in this repository
+2. Generate a new token with the `workflow` scope (and `repo` scope if repositories are private)
+3. Add it as a repository secret named `GH_TOKEN` in this repository:
+   - Go to this repository's Settings → Secrets and variables → Actions
+   - Click "New repository secret"
+   - Name: `GH_TOKEN`
+   - Value: Your generated token
 
-Alternatively, you can modify the workflow to use the `GITHUB_TOKEN` if you only want to trigger workflows within the same organization.
+**Alternative for same organization**: If you only want to trigger workflows within repositories in the same organization/user account, you can modify the workflow to use `secrets.GITHUB_TOKEN`, but this may have limitations based on your organization settings.
 
 ### 3. Trigger Workflows
 
@@ -115,7 +119,7 @@ Your target repositories must:
 
 - Have GitHub Actions enabled
 - Have the workflows you want to trigger (e.g., `ci.yml`, `tests.yml`)
-- Have these workflows configured with `workflow_dispatch` trigger or `push` trigger
+- Have these workflows configured with `workflow_dispatch` trigger (required for manual triggering)
 
 ## 🤝 Contributing
 
@@ -124,11 +128,13 @@ Feel free to customize `config.json` and the workflow to fit your needs!
 ## ⚠️ Troubleshooting
 
 **Workflow not triggering?**
+- Ensure the `GH_TOKEN` secret is properly configured in repository settings
 - Ensure the workflow file name matches exactly (case-sensitive)
 - Check that the target repository has the specified workflow
-- Verify your GitHub token has the correct permissions
+- Verify your GitHub token has the correct permissions (workflow scope)
 - Ensure the workflow in the target repo has `workflow_dispatch` enabled
 
 **Permission denied?**
-- Make sure you have a valid PAT with `workflow` scope
+- Make sure you have a valid PAT with `workflow` scope (and `repo` for private repos)
 - Verify you have access to the target repositories
+- Check that the `GH_TOKEN` secret is set in this repository's settings
